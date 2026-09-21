@@ -1,0 +1,37 @@
+name: Build and deploy consent_web
+
+on:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22.x'
+          package-manager-cache: false
+      - run: corepack enable && corepack prepare pnpm@12.5.1 --activate
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.API_URL || 'https://consent-api.azurewebsites.net' }}/api/v1
+          APP_BASE_URL: ${{ vars.WEB_URL || 'https://consent-web.azurewebsites.net' }}
+          WEB_URL: ${{ vars.WEB_URL || 'https://consent-web.azurewebsites.net' }}
+          ADMIN_URL: ${{ vars.ADMIN_URL || 'https://consent-admin.azurewebsites.net' }}
+          AUTH0_SECRET: build-time-placeholder-secret-32chars
+          AUTH0_DOMAIN: example.auth0.com
+          AUTH0_CLIENT_ID: build-placeholder-client-id
+          AUTH0_CLIENT_SECRET: build-placeholder-client-secret
+        run: |
+          pnpm install
+          pnpm build
+          pnpm --filter @cmp/web deploy --prod ./azure-web
+          bash deploy/azure/assemble.sh web
+      - uses: azure/webapps-deploy@v3.0.8
+        with:
+          app-name: ${{ vars.AZURE_WEB_APP || 'consent-web' }}
+          package: azure-site-web
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}

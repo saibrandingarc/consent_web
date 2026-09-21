@@ -1,0 +1,21 @@
+{
+  "name": "consent_web",
+  "version": "0.1.0",
+  "private": true,
+  "author": "saibrandingarc",
+  "description": "Consent Management public website",
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @cmp/web dev",
+    "build": "pnpm --filter @cmp/types build && pnpm --filter @cmp/utils build && pnpm --filter @cmp/auth build && pnpm --filter @cmp/web build",
+    "start": "pnpm --filter @cmp/web start",
+    "typecheck": "pnpm --filter @cmp/web typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  }
+}
