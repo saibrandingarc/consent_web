@@ -46,15 +46,10 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isAuthRoute(pathname) && !isAuth0Configured()) {
-      const adminUrl =
-        process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/$/, '') ||
-        'https://consent-management-admin-414895350436.us-central1.run.app';
-      const loginPath = pathname === '/auth/logout' ? '/auth/logout' : '/auth/login';
-      const target = new URL(`${adminUrl}${loginPath}`);
-      request.nextUrl.searchParams.forEach((value, key) => {
-        target.searchParams.set(key, value);
-      });
-      return NextResponse.redirect(target);
+      return new NextResponse(
+        'Auth0 is not configured on this App Service. Set AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, and AUTH0_SECRET.',
+        { status: 503, headers: { 'content-type': 'text/plain; charset=utf-8' } },
+      );
     }
 
     if (!isAuth0Configured()) {

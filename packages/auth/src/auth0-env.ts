@@ -44,15 +44,32 @@ export function isAuthUiEnabled(
   return false;
 }
 
+const AZURE_WEB_URL =
+  'https://consentmngtdev-gtfgamd4c9b4bbcr.eastus2-01.azurewebsites.net';
+
+function pickAppBase(
+  env: Record<string, string | undefined>,
+  productionFallback: string,
+  localFallback: string,
+): string {
+  const candidates = [
+    env.APP_BASE_URL,
+    env.WEB_URL,
+    env.NEXT_PUBLIC_APP_URL,
+  ];
+  for (const raw of candidates) {
+    const url = raw?.trim();
+    if (!url) continue;
+    if (env.NODE_ENV === 'production' && isLocalAppBase(url)) continue;
+    return url.replace(/\/$/, '');
+  }
+  return (env.NODE_ENV === 'production' ? productionFallback : localFallback).replace(/\/$/, '');
+}
+
 export function getAppBaseUrl(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): string {
-  const url =
-    env.APP_BASE_URL?.trim() ||
-    env.NEXT_PUBLIC_APP_URL?.trim() ||
-    env.NEXT_PUBLIC_ADMIN_URL?.trim() ||
-    'http://localhost:3000';
-  return url.replace(/\/$/, '');
+  return pickAppBase(env, AZURE_WEB_URL, 'http://localhost:3000');
 }
 
 type HeaderLike = { get(name: string): string | null };
@@ -109,8 +126,7 @@ export function resolveAppBaseUrlFromHeaders(
 export function getAuth0ClientOptions(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): { appBaseUrl?: string } {
-  const appBaseUrl = env.APP_BASE_URL?.trim();
-  return appBaseUrl ? { appBaseUrl } : {};
+  return { appBaseUrl: getAppBaseUrl(env) };
 }
 
 export function getRequestHost(
