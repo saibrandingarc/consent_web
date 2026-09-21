@@ -8,17 +8,15 @@ declare global {
 }
 
 const PRODUCTION_API_URL =
-  'https://consent-management-api-414895350436.us-central1.run.app/api/v1';
+  'https://consentapi-abgrbph5cfccbxe0.eastus2-01.azurewebsites.net/api/v1';
 
 function azurePublicApiUrl(): string | null {
   const host = process.env.WEBSITE_HOSTNAME?.trim();
   if (!host) return null;
-  return normalizeApiBaseUrl(`https://${host}`);
-}
-
-function isAzureWebHost(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.location.hostname.endsWith('azurewebsites.net');
+  if (host.includes('consentapi') || host.startsWith('consent-api')) {
+    return normalizeApiBaseUrl(`https://${host}`);
+  }
+  return PRODUCTION_API_URL;
 }
 
 function isProductionWebHost(): boolean {
@@ -51,10 +49,6 @@ export function getRuntimePublicEnvScript(): string | null {
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined' && window.__CMP_PUBLIC_ENV__?.apiUrl) {
     return normalizeApiBaseUrl(window.__CMP_PUBLIC_ENV__.apiUrl);
-  }
-
-  if (isAzureWebHost()) {
-    return normalizeApiBaseUrl(window.location.origin);
   }
 
   const internal = process.env.INTERNAL_API_URL?.trim();
