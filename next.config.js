@@ -1,7 +1,7 @@
 const path = require('path');
 
 try {
-  require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+  require('dotenv').config({ path: path.join(__dirname, '.env') });
 } catch {
   // Azure injects App Settings; dotenv is only needed for local .env files.
 }
@@ -10,7 +10,7 @@ try {
 const nextConfig = {
   output: 'standalone',
   transpilePackages: ['@cmp/auth', '@cmp/types', '@cmp/utils'],
-  outputFileTracingRoot: path.join(__dirname, '../../'),
+  outputFileTracingRoot: __dirname,
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_ADMIN_URL: process.env.ADMIN_URL,

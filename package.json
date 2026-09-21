@@ -9,13 +9,26 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm --filter @cmp/web dev",
-    "build": "pnpm --filter @cmp/types build && pnpm --filter @cmp/utils build && pnpm --filter @cmp/auth build && pnpm --filter @cmp/web build",
-    "start": "pnpm --filter @cmp/web start",
-    "typecheck": "pnpm --filter @cmp/web typecheck"
+    "dev": "next dev --port 3000",
+    "build": "pnpm --filter @cmp/types build && pnpm --filter @cmp/utils build && pnpm --filter @cmp/auth build && next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf .next"
+  },
+  "dependencies": {
+    "@auth0/nextjs-auth0": "^4.30.0",
+    "@cmp/auth": "workspace:*",
+    "@cmp/types": "workspace:*",
+    "@cmp/utils": "workspace:*",
+    "dotenv": "^17.2.3",
+    "next": "^16.3.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "typescript": "^7.0.2"
   }
 }
