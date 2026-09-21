@@ -15,4 +15,7 @@ pnpm dev   # http://localhost:3000
 
 ## Azure
 
-Node **22** Linux Web App. Secret `AZUREAPPSERVICE_PUBLISHPROFILE`. Default app name `consentmngtdev`. Set `NEXT_PUBLIC_API_URL` at **build** time (GitHub Actions already defaults to the Azure API).
+Node **22** Linux Web App `consentmngtdev`:
+https://consentmngtdev-gtfgamd4c9b4bbcr.eastus2-01.azurewebsites.net
+
+Calls API `https://consentapi-abgrbph5cfccbxe0.eastus2-01.azurewebsites.net/api/v1`. Secret `AZUREAPPSERVICE_PUBLISHPROFILE`. Set `NEXT_PUBLIC_API_URL` at **build** time.
