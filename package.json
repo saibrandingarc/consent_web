@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "pnpm --filter @cmp/types build && pnpm --filter @cmp/utils build && pnpm --filter @cmp/auth build && next build",
-    "start": "next start",
+    "start": "node start-next.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "clean": "rm -rf .next"
   },
