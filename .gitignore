@@ -13,6 +13,7 @@ azure-web
 azure-admin
 azure-api
 azure-site-web
+azure-site-web.zip
 azure-site-admin
 azure-site-api
 .DS_Store

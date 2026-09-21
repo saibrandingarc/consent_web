@@ -33,5 +33,5 @@ jobs:
       - uses: azure/webapps-deploy@v3.0.8
         with:
           app-name: ${{ vars.AZURE_WEB_APP || 'consentmngtdev' }}
-          package: azure-site-web
+          package: azure-site-web.zip
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE || secrets.AZUREAPPSERVICE_PUBLISHPROFILE_EC3C9EE888A64CDD988535812D7EA589 }}

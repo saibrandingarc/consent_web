@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SRC_DEPLOY="${ROOT}/azure-web"
 SRC_APP="${ROOT}"
 OUT="${ROOT}/azure-site-web"
+ZIP="${ROOT}/azure-site-web.zip"
 
 write_deploy_meta() {
   local dir="$1"
@@ -12,7 +13,7 @@ write_deploy_meta() {
 [config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=false
 EOF
-  rm -f "${dir}/oryx-manifest.toml" "${dir}/node_modules.tar.gz"
+  rm -f "${dir}/oryx-manifest.toml" "${dir}/node_modules.tar.gz" "${dir}/.gitignore"
 }
 
 copy_real_pkg() {
@@ -73,12 +74,24 @@ deref_node_modules() {
 rm -rf "${OUT}"
 mkdir -p "${OUT}"
 test -d "${SRC_DEPLOY}"
+test -d "${SRC_APP}/.next"
 cp -a "${SRC_DEPLOY}/." "${OUT}/"
 rm -rf "${OUT}/.next"
 cp -a "${SRC_APP}/.next" "${OUT}/.next"
 if [[ -d "${SRC_APP}/public" ]]; then
   mkdir -p "${OUT}/public"
   cp -a "${SRC_APP}/public/." "${OUT}/public/"
+fi
+if [[ -d "${OUT}/.next/standalone" ]]; then
+  mkdir -p "${OUT}/.next/standalone/.next"
+  if [[ -d "${OUT}/.next/static" ]]; then
+    rm -rf "${OUT}/.next/standalone/.next/static"
+    cp -a "${OUT}/.next/static" "${OUT}/.next/standalone/.next/static"
+  fi
+  if [[ -d "${OUT}/public" ]]; then
+    mkdir -p "${OUT}/.next/standalone/public"
+    cp -a "${OUT}/public/." "${OUT}/.next/standalone/public/"
+  fi
 fi
 deref_node_modules "${OUT}"
 copy_next_runtime "${OUT}/node_modules"
@@ -96,4 +109,12 @@ EOF
 write_deploy_meta "${OUT}"
 test -f "${OUT}/node_modules/next/dist/bin/next"
 test -f "${OUT}/node_modules/@next/env/package.json"
-echo "assembled ${OUT}"
+if [[ ! -f "${OUT}/.next/BUILD_ID" && ! -f "${OUT}/.next/standalone/server.js" ]]; then
+  echo "missing Next production build (.next/BUILD_ID or standalone/server.js)" >&2
+  ls -la "${OUT}/.next" >&2 || true
+  exit 1
+fi
+rm -f "${ZIP}"
+(cd "${OUT}" && zip -qr "${ZIP}" .)
+unzip -l "${ZIP}" | grep -E '\.next/(BUILD_ID|standalone/server.js)' >/dev/null
+echo "assembled ${OUT} and ${ZIP}"
