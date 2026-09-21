@@ -97,12 +97,13 @@ deref_node_modules "${OUT}"
 copy_next_runtime "${OUT}/node_modules"
 copy_real_pkg dotenv "${OUT}/node_modules" optional
 cp "${ROOT}/start-next.js" "${OUT}/start-next.js"
+cp "${ROOT}/host.js" "${OUT}/host.js"
 cat > "${OUT}/package.json" <<EOF
 {
   "name": "consent_web",
   "private": true,
   "author": "saibrandingarc",
-  "scripts": { "start": "node start-next.js" },
+  "scripts": { "start": "node host.js" },
   "engines": { "node": "22.x" }
 }
 EOF
