@@ -83,6 +83,7 @@ if [[ -d "${SRC_APP}/public" ]]; then
 fi
 deref_node_modules "${OUT}"
 copy_next_runtime "${OUT}/node_modules"
+copy_real_pkg dotenv "${OUT}/node_modules" optional
 cp "${ROOT}/deploy/azure/start-next.js" "${OUT}/start-next.js"
 cat > "${OUT}/package.json" <<EOF
 {

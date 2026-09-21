@@ -32,6 +32,6 @@ jobs:
           bash deploy/azure/assemble.sh web
       - uses: azure/webapps-deploy@v3.0.8
         with:
-          app-name: ${{ vars.AZURE_WEB_APP || 'consent-web' }}
+          app-name: ${{ vars.AZURE_WEB_APP || 'consentmngtdev' }}
           package: azure-site-web
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}

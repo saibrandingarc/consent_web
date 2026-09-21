@@ -1,7 +1,10 @@
 const path = require('path');
-const { config } = require('dotenv');
 
-config({ path: path.join(__dirname, '../../.env') });
+try {
+  require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+} catch {
+  // Azure injects App Settings; dotenv is only needed for local .env files.
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
