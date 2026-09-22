@@ -7,12 +7,22 @@ export { getApiBaseUrl, getRuntimePublicEnvScript } from '@/lib/runtime-public-e
 let cachedClientToken: string | null = null;
 let cachedClientTokenAt = 0;
 
-async function syncAuthSession(): Promise<boolean> {
+async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+  const json = (await res.json().catch(() => null)) as
+    | { error?: string | { message?: string } }
+    | null;
+  if (typeof json?.error === 'string' && json.error.trim()) return json.error;
+  if (typeof json?.error === 'object' && json.error?.message) return json.error.message;
+  return fallback;
+}
+
+async function syncAuthSession(): Promise<{ ok: boolean; message?: string }> {
   try {
     const res = await fetch('/api/auth/sync', { method: 'POST', credentials: 'include' });
-    return res.ok;
+    if (res.ok) return { ok: true };
+    return { ok: false, message: await readErrorMessage(res, `Session sync failed (${res.status})`) };
   } catch {
-    return false;
+    return { ok: false, message: 'Session sync failed.' };
   }
 }
 
@@ -96,10 +106,26 @@ async function parseApiResponse<T>(response: Response): Promise<ApiResult<T>> {
   }
 }
 
-export async function ensureApiSession(): Promise<boolean> {
-  await syncAuthSession();
-  const token = await getClientAccessToken(true);
-  return Boolean(token);
+export async function ensureApiSession(): Promise<{ ok: boolean; message?: string }> {
+  const synced = await syncAuthSession();
+  const tokenRes = await fetch('/api/auth/access-token', {
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  if (tokenRes.ok) {
+    const json = (await tokenRes.json()) as { accessToken?: string };
+    cachedClientToken = json.accessToken ?? null;
+    cachedClientTokenAt = Date.now();
+    if (cachedClientToken) return { ok: true };
+  }
+  const tokenError = tokenRes.ok
+    ? undefined
+    : await readErrorMessage(tokenRes, `Could not obtain an API token (${tokenRes.status})`);
+  if (!synced.ok) return { ok: false, message: synced.message ?? tokenError };
+  return {
+    ok: false,
+    message: tokenError ?? `Could not obtain a CMP API token from ${getApiBaseUrl()}.`,
+  };
 }
 
 export async function apiFetch<T>(

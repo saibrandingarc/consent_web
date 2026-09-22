@@ -1,14 +1,19 @@
 import { cookies } from 'next/headers';
-import { getAuth0 } from '@/lib/auth0';
 import { getAuth0SessionFromRequest } from '@/lib/auth0-session.server';
 import { ACCESS_COOKIE, REFRESH_COOKIE } from '@/lib/auth-cookies';
 import {
+  exchangeAuth0IdTokenForCmpTokens,
   isAccessTokenExpired,
   refreshCmpTokensFromCookie,
   setCmpTokenCookies,
 } from '@/lib/cmp-auth-server';
-import { getApiBaseUrl } from '@/lib/runtime-public-env';
 import { NextResponse, type NextRequest } from 'next/server';
+
+function idTokenFromSession(session: unknown): string | undefined {
+  const tokenSet = (session as { tokenSet?: { idToken?: string; id_token?: string } } | null)
+    ?.tokenSet;
+  return tokenSet?.idToken ?? tokenSet?.id_token;
+}
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
@@ -27,40 +32,21 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const audience = process.env.AUTH0_AUDIENCE;
-
-  try {
-    const session = await getAuth0SessionFromRequest(request);
-    if (session?.user) {
-      const idToken =
-        (session as { tokenSet?: { idToken?: string; id_token?: string } }).tokenSet?.idToken ??
-        (session as { tokenSet?: { id_token?: string } }).tokenSet?.id_token;
-      if (idToken) {
-        const res = await fetch(`${getApiBaseUrl()}/auth/auth0/callback`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken }),
-          cache: 'no-store',
-        });
-        const result = (await res.json()) as {
-          ok: boolean;
-          data?: { accessToken: string; refreshToken: string };
-        };
-        if (result.ok && result.data?.accessToken && result.data?.refreshToken) {
-          const response = NextResponse.json({ accessToken: result.data.accessToken });
-          setCmpTokenCookies(response, result.data);
-          return response;
-        }
-      }
-    }
-
-    const result = await getAuth0().getAccessToken(audience ? { audience } : undefined);
-    if (result?.token) {
-      return NextResponse.json({ accessToken: result.token });
-    }
-  } catch {
-    // Fall through to 401
+  const session = await getAuth0SessionFromRequest(request);
+  const idToken = idTokenFromSession(session);
+  if (!session?.user) {
+    return NextResponse.json({ error: 'No Auth0 session' }, { status: 401 });
+  }
+  if (!idToken) {
+    return NextResponse.json({ error: 'No Auth0 id token in session' }, { status: 401 });
   }
 
-  return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  const exchanged = await exchangeAuth0IdTokenForCmpTokens(idToken);
+  if ('error' in exchanged) {
+    return NextResponse.json({ error: exchanged.error }, { status: exchanged.status });
+  }
+
+  const response = NextResponse.json({ accessToken: exchanged.accessToken });
+  setCmpTokenCookies(response, exchanged);
+  return response;
 }

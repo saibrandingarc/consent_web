@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CurrentUser } from '@cmp/types';
-import { apiFetch, ensureApiSession } from '@/lib/api';
+import { apiFetch, ensureApiSession, getApiBaseUrl } from '@/lib/api';
 import { redirectToAuthLogin } from '@/lib/auth-login';
 import { UserShell } from '@/components/user-shell';
 import { LoadingScreen } from '@/components/loading-screen';
@@ -27,9 +27,12 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const sessionOk = await ensureApiSession();
-      if (!sessionOk) {
-        setError('Could not connect to the API. Make sure pnpm dev:api is running on port 4000.');
+      const session = await ensureApiSession();
+      if (!session.ok) {
+        setError(
+          session.message ??
+            `Could not connect to the API at ${getApiBaseUrl()}. Confirm consent_api is running.`,
+        );
         setLoading(false);
         return;
       }

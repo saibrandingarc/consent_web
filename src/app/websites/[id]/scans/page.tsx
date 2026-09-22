@@ -79,7 +79,7 @@ function WebsiteScansContent({ domain }: { domain: Domain }) {
     setError('');
     websiteScan?.clearFlash();
     const sessionOk = await ensureApiSession();
-    if (!sessionOk) {
+    if (!sessionOk.ok) {
       setStarting(false);
       setError('Session expired. Please sign in again.');
       return;
@@ -110,7 +110,7 @@ function WebsiteScansContent({ domain }: { domain: Domain }) {
     setError('');
     websiteScan?.clearFlash();
     const sessionOk = await ensureApiSession();
-    if (!sessionOk) {
+    if (!sessionOk.ok) {
       setStarting(false);
       setError('Session expired. Please sign in again.');
       return;
@@ -140,7 +140,7 @@ function WebsiteScansContent({ domain }: { domain: Domain }) {
     setMessage('');
     setError('');
     const sessionOk = await ensureApiSession();
-    if (!sessionOk) {
+    if (!sessionOk.ok) {
       setCancellingId(null);
       setError('Session expired. Please sign in again.');
       return;
@@ -162,7 +162,7 @@ function WebsiteScansContent({ domain }: { domain: Domain }) {
     setMessage('');
     setError('');
     const sessionOk = await ensureApiSession();
-    if (!sessionOk) {
+    if (!sessionOk.ok) {
       setRetryingId(null);
       setError('Session expired. Please sign in again.');
       return;

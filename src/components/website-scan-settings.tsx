@@ -28,7 +28,7 @@ export function WebsiteScanSettings({
     setStartingScan(true);
     websiteScan?.clearFlash();
     const sessionOk = await ensureApiSession();
-    if (!sessionOk) {
+    if (!sessionOk.ok) {
       setStartingScan(false);
       return;
     }
